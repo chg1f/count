@@ -14,6 +14,7 @@ var (
 
 type Remote interface {
 	IncrBy(context.Context, int64) (int64, error)
+	Reset(context.Context) (int64, error)
 }
 
 type Redis struct {
@@ -53,4 +54,11 @@ func (rt Redis) IncrBy(ctx context.Context, value int64) (int64, error) {
 	}
 	rt.client.Expire(ctx, rt.key, rt.ttl)
 	return value, nil
+}
+func (rt Redis) Reset(ctx context.Context) (int64, error) {
+	cmd := rt.client.GetSet(ctx, rt.key, 0)
+	if err := cmd.Err(); err != nil {
+		return 0, err
+	}
+	return cmd.Int64() // TODO: handle distributed
 }
