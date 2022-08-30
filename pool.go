@@ -90,3 +90,7 @@ func (pl *Pool) Limits(ctx context.Context, limits map[string]int64) (bool, erro
 	}
 	return true, nil
 }
+
+func (pl *Pool) Len() int {
+	return len(pl.counters)
+}

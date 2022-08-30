@@ -13,8 +13,7 @@ var (
 )
 
 type Remote interface {
-	IncrBy(context.Context, int64) (int64, error)
-	Reset(context.Context) (int64, error)
+	IncrBy(context.Context, string, int64) (int64, error)
 }
 
 type Redis struct {
@@ -47,18 +46,11 @@ func NewRedis(client redis.Cmdable, key string, ttl time.Duration) (*Redis, erro
 	}
 	return &r, nil
 }
-func (rt Redis) IncrBy(ctx context.Context, value int64) (int64, error) {
-	value, err := rt.client.IncrBy(ctx, rt.key, value).Result()
+func (rt Redis) IncrBy(ctx context.Context, group string, value int64) (int64, error) {
+	value, err := rt.client.IncrBy(ctx, rt.key+group, value).Result()
 	if err != nil {
 		return 0, err
 	}
 	rt.client.Expire(ctx, rt.key, rt.ttl)
 	return value, nil
-}
-func (rt Redis) Reset(ctx context.Context) (int64, error) {
-	cmd := rt.client.GetSet(ctx, rt.key, 0)
-	if err := cmd.Err(); err != nil {
-		return 0, err
-	}
-	return cmd.Int64() // TODO: handle distributed
 }

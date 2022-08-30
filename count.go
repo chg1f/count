@@ -3,6 +3,7 @@ package count
 import (
 	"context"
 	"sync/atomic"
+	"time"
 )
 
 type Counter struct {
@@ -41,9 +42,6 @@ func (ct *Counter) Reset(ctx context.Context) (synced, unsync int64) {
 	}
 	unsync = atomic.SwapInt64(&ct.unsync, 0)
 	synced = atomic.SwapInt64(&ct.synced, 0)
-	if ct.remote != nil {
-		ct.remote.Reset(ctx)
-	}
 	return
 }
 func (ct *Counter) Sync(ctx context.Context) (remote int64, err error) {
@@ -54,7 +52,7 @@ func (ct *Counter) Sync(ctx context.Context) (remote int64, err error) {
 		unsync = atomic.LoadInt64(&ct.unsync)
 		synced = ct.synced
 	)
-	remote, err = ct.remote.IncrBy(ctx, unsync-synced)
+	remote, err = ct.remote.IncrBy(ctx, time.Now().Format("2006-01-02"), unsync-synced) // TODO:
 	if err != nil {
 		return 0, err
 	}
