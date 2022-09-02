@@ -71,7 +71,9 @@ func (ct *Counter) Hit(ctx context.Context) {
 	// ct.latestAt = now
 }
 func (ct *Counter) Limit(ctx context.Context, limit int64) (bool, error) {
-	if ct == nil {
+	if limit == 0 {
+		return false, nil
+	} else if ct == nil {
 		return true, nil
 	}
 	unsync := atomic.LoadInt64(&ct.unsync)
